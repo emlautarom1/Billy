@@ -18,7 +18,7 @@ const routes: Routes = [
     component: SummaryComponent
   },
   {
-    path: '*',
+    path: '',
     redirectTo: 'items',
     pathMatch: 'full'
   }
