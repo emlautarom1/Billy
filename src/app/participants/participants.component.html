@@ -13,18 +13,22 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-list lines="full">
-
-    <ion-item-sliding *ngFor="let participant of participants">
+  <ion-list lines="full" *ngIf="participants.length > 0 else empty">
+    <ion-item-sliding *ngFor="let participant of participants; let i = index">
       <ion-item>
         <ion-label>{{ participant.name }}</ion-label>
       </ion-item>
       <ion-item-options side="end">
-        <ion-item-option color="danger">Remove</ion-item-option>
+        <ion-item-option color="danger" (click)="removeAt(i)">Remove</ion-item-option>
       </ion-item-options>
     </ion-item-sliding>
-
   </ion-list>
+
+  <ng-template #empty>
+    <div class="empty-list">
+      <h3>Add some Participants</h3>
+    </div>
+  </ng-template>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="addParticipant()">
     <ion-fab-button>

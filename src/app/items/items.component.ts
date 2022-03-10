@@ -54,4 +54,8 @@ export class ItemsComponent implements OnInit {
     }
   }
 
+  removeAt(index: number) {
+    this.items.splice(index, 1);
+  }
+
 }

@@ -49,4 +49,7 @@ export class ParticipantsComponent implements OnInit {
     }
   }
 
+  removeAt(index: number) {
+    this.participants.splice(index, 1);
+  }
 }
