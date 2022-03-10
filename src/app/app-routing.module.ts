@@ -1,16 +1,30 @@
 import { NgModule } from '@angular/core';
-import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
+import { ItemsComponent } from './items/items.component';
+import { ParticipantsComponent } from './participants/participants.component';
+import { SummaryComponent } from './summary/summary.component';
 
 const routes: Routes = [
   {
-    path: '',
-    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
+    path: 'items',
+    component: ItemsComponent
+  },
+  {
+    path: 'participants',
+    component: ParticipantsComponent
+  },
+  {
+    path: 'summary',
+    component: SummaryComponent
+  },
+  {
+    path: '*',
+    redirectTo: 'items',
+    pathMatch: 'full'
   }
 ];
 @NgModule({
-  imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
-  ],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }
