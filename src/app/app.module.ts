@@ -11,13 +11,15 @@ import { AppComponent } from './app.component';
 import { ItemsComponent } from './items/items.component';
 import { ParticipantsComponent } from './participants/participants.component';
 import { SummaryComponent } from './summary/summary.component';
+import { MoneyPipe } from './money.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     ItemsComponent,
     ParticipantsComponent,
-    SummaryComponent
+    SummaryComponent,
+    MoneyPipe
   ],
   entryComponents: [],
   imports: [
