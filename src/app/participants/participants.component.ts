@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
+import { Observable } from 'rxjs';
+import { BillyService } from '../billy.service';
 import { Participant } from '../model/participant';
 
 @Component({
@@ -8,15 +10,16 @@ import { Participant } from '../model/participant';
   styleUrls: ['./participants.component.scss'],
 })
 export class ParticipantsComponent implements OnInit {
+  participants$!: Observable<Participant[]>;
 
-  constructor(private alertController: AlertController) { }
+  constructor(
+    private billy: BillyService,
+    private alertController: AlertController
+  ) { }
 
-  participants: Participant[] = [
-    { name: "Ana" },
-    { name: "Bob" }
-  ];
-
-  ngOnInit() { }
+  ngOnInit() {
+    this.participants$ = this.billy.getParticipants();
+  }
 
   async addParticipant() {
     const alert = await this.alertController.create({
@@ -44,12 +47,12 @@ export class ParticipantsComponent implements OnInit {
 
     const { data, role } = await alert.onDidDismiss();
     if (role == "submit") {
-      const participant = data.values;
-      this.participants = [...this.participants, participant];
+      const participant = data.values as Participant;
+      this.billy.addParticipant(participant)
     }
   }
 
-  removeAt(index: number) {
-    this.participants.splice(index, 1);
+  deleteParticipant(participant: Participant) {
+    this.billy.deleteParticipant(participant)
   }
 }
