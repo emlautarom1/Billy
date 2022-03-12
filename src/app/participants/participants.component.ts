@@ -7,7 +7,6 @@ import { Participant } from '../model/participant';
 @Component({
   selector: 'app-participants',
   templateUrl: './participants.component.html',
-  styleUrls: ['./participants.component.scss'],
 })
 export class ParticipantsComponent implements OnInit {
   participants$!: Observable<Participant[]>;
