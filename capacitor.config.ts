@@ -1,9 +1,9 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'io.github.emlautarom1',
   appName: 'billy',
-  webDir: 'www',
+  webDir: 'docs',
   bundledWebRuntime: false
 };
 
