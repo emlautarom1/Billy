@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
@@ -12,6 +13,8 @@ import { ItemsComponent } from './items/items.component';
 import { ParticipantsComponent } from './participants/participants.component';
 import { SummaryComponent } from './summary/summary.component';
 import { MoneyPipe } from './money.pipe';
+
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -27,7 +30,13 @@ import { MoneyPipe } from './money.pipe';
     IonicModule.forRoot(),
     AppRoutingModule,
     CommonModule,
-    FormsModule
+    FormsModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      // Register the ServiceWorker as soon as the app is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
