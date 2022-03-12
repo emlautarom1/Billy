@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Item } from './model/item';
 import { Participant } from './model/participant';
-import { BehaviorSubject, combineLatest, merge, Observable, zip } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable({
@@ -10,7 +10,23 @@ import { map } from 'rxjs/operators';
 export class BillyService {
   private _participants$: BehaviorSubject<Participant[]> = new BehaviorSubject([]);
   private _items$: BehaviorSubject<Item[]> = new BehaviorSubject([]);
-  private _assocs$: BehaviorSubject<Map<Participant, Item[]>> = new BehaviorSubject(new Map());
+  private _assocs$: BehaviorSubject<Map<Item, Set<Participant>>> = new BehaviorSubject(new Map());
+
+  constructor() {
+    const startingItems = [
+      { name: "Pizza", price: 800 },
+      { name: "Beer", price: 400 }
+    ];
+    const startingParticipants = [
+      { name: "Ana" },
+      { name: "Bob" },
+      { name: "Paul" },
+      { name: "Susan" },
+    ];
+
+    startingItems.forEach((item) => this.addItem(item));
+    startingParticipants.forEach((participant) => this.addParticipant(participant));
+  }
 
   getItems(): Observable<Item[]> {
     return this._items$;
@@ -20,89 +36,88 @@ export class BillyService {
     return this._participants$;
   }
 
-  getSummary(): Observable<Map<Participant, number>> {
-    return combineLatest([this._items$, this._assocs$]).pipe(
-      map(([allItems, assocs]) => this.computeSummary(allItems, assocs))
-    );
+  addItem(item: Item) {
+    const allItems = this._items$.getValue();
+    this._items$.next([...allItems, item]);
+
+    const assocs = this._assocs$.getValue();
+    assocs.set(item, new Set());
+    this._assocs$.next(assocs);
   }
 
   addParticipant(participant: Participant) {
     const allParticipants = this._participants$.getValue();
     this._participants$.next([...allParticipants, participant]);
-
-    const assocs = this._assocs$.getValue().set(participant, []);
-    this._assocs$.next(assocs);
   }
 
-  addItem(item: Item) {
-    const allItems = this._items$.getValue();
-    this._items$.next([...allItems, item]);
-  }
-
-  associateParticipantWithItems(participant: Participant, items: Item[]) {
-    const assocs = this._assocs$.getValue();
-    assocs.set(participant, items);
-    this._assocs$.next(assocs);
-  }
-
-  deleteParticipant(participant: Participant) {
-    const allParticipants = this._participants$.getValue();
-    this._participants$.next(this.remove(allParticipants, participant));
-
-    const assocs = this._assocs$.getValue();
-    assocs.delete(participant);
-    this._assocs$.next(assocs);
-  }
-
-  deleteItem(item: Item) {
+  removeItem(item: Item) {
     const allItems = this._items$.getValue();
     this._items$.next(this.remove(allItems, item));
 
     const assocs = this._assocs$.getValue();
-    for (let items of assocs.values()) {
-      this.remove(items, item);
+    assocs.delete(item);
+    this._assocs$.next(assocs);
+  }
+
+  removeParticipant(participant: Participant) {
+    const allParticipants = this._participants$.getValue();
+    this._participants$.next(this.remove(allParticipants, participant));
+
+    const assocs = this._assocs$.getValue();
+    for (const [_, participants] of assocs) {
+      participants.delete(participant);
     }
     this._assocs$.next(assocs);
   }
 
-  private computeSummary(allItems: Item[], assocs: Map<Participant, Item[]>): Map<Participant, number> {
-    /*
-    For each item, count the number of invoved participants.
-    Then, split the price between the number of participants.
-    */
-    const perParticipantAmount: Map<Item, number> = new Map();
-    for (let item of allItems) {
-      let involvedParticipants = this.participantsInvolvedWithItem(item).length
-      if (involvedParticipants > 0)
-        perParticipantAmount.set(item, item.price / involvedParticipants);
+  setParticipantItems(participant: Participant, items: Item[]) {
+    const allParticipants = this._participants$.getValue();
+    if (allParticipants.indexOf(participant) < 0) {
+      throw new Error("Invariant violation");
     }
 
-    /*
-    For each participant, conver each association to the splitted prices calculated above.
-    Then, add up all splitted prices.
-    */
-    const result: Map<Participant, number> = new Map();
-    for (let [participant, items] of assocs) {
-      let total = 0;
-      for (let item of items) {
-        total += perParticipantAmount.get(item) ?? 0;
-      }
-      result.set(participant, total);
-    }
-
-    return result;
-  }
-
-  private participantsInvolvedWithItem(item: Item): Participant[] {
     const assocs = this._assocs$.getValue();
-    let participants = [];
-    for (let [participant, items] of assocs) {
-      if (items.indexOf(item) >= 0) {
-        participants.push(participant);
+    const allItems = this._items$.getValue();
+    for (const item of items) {
+      if (allItems.indexOf(item) < 0) {
+        throw new Error("Invariant violation");
       }
+      assocs.get(item).add(participant);
     }
-    return participants;
+    this._assocs$.next(assocs);
   }
+
+  getSummary(): Observable<Map<Participant, number>> {
+    return this._assocs$.pipe(
+      map(assocs => {
+        /*
+        Calculate the splitted price of each Item.
+        */
+        const splittedPrice = new Map();
+        for (const [item, participants] of assocs) {
+          if (participants.size > 0) {
+            splittedPrice.set(item, item.price / participants.size);
+          }
+        }
+
+        /*
+        For each Participant, find all the items in which its participant
+        Sum the splitted price of each item.
+        */
+        const result = new Map<Participant, number>();
+        for (const [item, participants] of assocs) {
+          for (const participant of participants) {
+            const acc = result.get(participant) ?? 0;
+            const splitted = splittedPrice.get(item);
+            result.set(participant, acc + splitted);
+          }
+        }
+
+        return result;
+      })
+    );
+  }
+
 
   /**
    * Remove the first occurence (if any) of `item` from `array`.

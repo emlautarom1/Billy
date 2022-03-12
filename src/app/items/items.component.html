@@ -13,27 +13,30 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-list lines="full" *ngIf="(items$ | async)?.length > 0 && items$ | async as items; else empty">
-    <ion-item-sliding *ngFor="let item of items">
-      <ion-item>
-        <ion-label>{{ item.name }} </ion-label>
-        <ion-note slot="end">{{ item.price | money }}</ion-note>
-      </ion-item>
-      <ion-item-options side="end">
-        <ion-item-option color="danger" (click)="deleteItem(item)">Remove</ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
-  </ion-list>
+  <ng-container *ngIf="items$ | async as items">
+    <ion-list lines="full" *ngIf="items.length > 0; else empty">
+      <ion-item-sliding *ngFor="let item of items">
+        <ion-item>
+          <ion-label>{{ item.name }}</ion-label>
+          <ion-note slot="end">{{ item.price | money }}</ion-note>
+        </ion-item>
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="removeItem(item)">Remove</ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-list>
 
-  <ng-template #empty>
-    <div class="empty-list">
-      <h3>Add some Items</h3>
-    </div>
-  </ng-template>
+    <ng-template #empty>
+      <div class="empty-list">
+        <h3>Add some Items</h3>
+      </div>
+    </ng-template>
+  </ng-container>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" (click)="addItem()">
     <ion-fab-button>
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
 </ion-content>

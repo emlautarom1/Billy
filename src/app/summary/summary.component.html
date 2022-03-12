@@ -13,15 +13,21 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-list lines="full">
-    <ion-item>
-      <ion-label>Ana</ion-label>
-      <ion-note slot="end">$ 800</ion-note>
-    </ion-item>
-    <ion-item>
-      <ion-label>Bob</ion-label>
-      <ion-note slot="end">$ 800</ion-note>
-    </ion-item>
-  </ion-list>
+  <ng-container *ngIf="summary$ | async as summary">
+    <ion-list lines="full" *ngIf="summary.size > 0; else empty">
+      <ion-item-sliding *ngFor="let entry of summary | keyvalue">
+        <ion-item>
+          <ion-label>{{ entry.key.name }}</ion-label>
+          <ion-note slot="end">{{ entry.value | money }}</ion-note>
+        </ion-item>
+      </ion-item-sliding>
+    </ion-list>
+
+    <ng-template #empty>
+      <div class="empty-list">
+        <h3>No summary available</h3>
+      </div>
+    </ng-template>
+  </ng-container>
 
 </ion-content>

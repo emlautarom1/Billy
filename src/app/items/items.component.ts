@@ -56,8 +56,8 @@ export class ItemsComponent implements OnInit {
     }
   }
 
-  deleteItem(item: Item) {
-    this.billy.deleteItem(item);
+  removeItem(item: Item) {
+    this.billy.removeItem(item);
   }
 
 }
